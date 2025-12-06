@@ -1,0 +1,16 @@
+# env file
+.env
+
+# Editor/IDE
+# .idea/
+# .vscode/
+
+# Claude
+.claude/
+CLAUDE.md
+
+# Quality checks
+coverage.out
+
+# Binary
+/claude-clean
