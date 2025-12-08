@@ -4,12 +4,32 @@ import (
 	"bytes"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
+
+// setTestHome sets the home directory for tests.
+// On Windows, os.UserHomeDir() uses USERPROFILE, not HOME.
+func setTestHome(t *testing.T, tmpDir string) func() {
+	oldHome := os.Getenv("HOME")
+	oldUserProfile := os.Getenv("USERPROFILE")
+
+	os.Setenv("HOME", tmpDir)
+	if runtime.GOOS == "windows" {
+		os.Setenv("USERPROFILE", tmpDir)
+	}
+
+	return func() {
+		os.Setenv("HOME", oldHome)
+		if runtime.GOOS == "windows" {
+			os.Setenv("USERPROFILE", oldUserProfile)
+		}
+	}
+}
 
 func TestParseArgs_NoArgs(t *testing.T) {
 	args, err := parseArgs([]string{})
@@ -158,9 +178,8 @@ func TestRunCLI_ListProjectsEmpty(t *testing.T) {
 	require.NoError(t, os.MkdirAll(projectsDir, 0755))
 
 	// Set environment to use temp dir
-	oldHome := os.Getenv("HOME")
-	os.Setenv("HOME", tmpDir)
-	defer os.Setenv("HOME", oldHome)
+	cleanup := setTestHome(t, tmpDir)
+	defer cleanup()
 
 	var stdout, stderr bytes.Buffer
 	stdin := strings.NewReader("")
@@ -184,13 +203,13 @@ func TestRunCLI_ListProjectsWithData(t *testing.T) {
 	existingDir := filepath.Join(tmpDir, "existing-project")
 	require.NoError(t, os.MkdirAll(existingDir, 0755))
 
-	sessionData := `{"sessionId":"sess1","cwd":"` + existingDir + `","timestamp":"2025-01-01T00:00:00Z"}`
+	// Use filepath.ToSlash for JSON to avoid Windows backslash escaping issues
+	sessionData := `{"sessionId":"sess1","cwd":"` + filepath.ToSlash(existingDir) + `","timestamp":"2025-01-01T00:00:00Z"}`
 	require.NoError(t, os.WriteFile(filepath.Join(projectDir, "session.jsonl"), []byte(sessionData), 0644))
 
 	// Set environment to use temp dir
-	oldHome := os.Getenv("HOME")
-	os.Setenv("HOME", tmpDir)
-	defer os.Setenv("HOME", oldHome)
+	cleanup := setTestHome(t, tmpDir)
+	defer cleanup()
 
 	var stdout, stderr bytes.Buffer
 	stdin := strings.NewReader("")
@@ -198,7 +217,8 @@ func TestRunCLI_ListProjectsWithData(t *testing.T) {
 	code := runCLI([]string{"list", "projects"}, stdin, &stdout, &stderr)
 
 	assert.Equal(t, 0, code)
-	assert.Contains(t, stdout.String(), existingDir)
+	// On Windows the output may have backslashes, so check for the base name
+	assert.Contains(t, stdout.String(), "existing-project")
 }
 
 func TestRunCLI_CleanProjectsDryRun(t *testing.T) {
@@ -209,13 +229,14 @@ func TestRunCLI_CleanProjectsDryRun(t *testing.T) {
 	// Create a stale project (cwd doesn't exist)
 	projectDir := filepath.Join(projectsDir, "-nonexistent-path")
 	require.NoError(t, os.MkdirAll(projectDir, 0755))
-	sessionData := `{"sessionId":"sess1","cwd":"/nonexistent/path","timestamp":"2025-01-01T00:00:00Z"}`
+	// Use a path that doesn't exist on any platform
+	nonexistentPath := filepath.Join(tmpDir, "this-path-does-not-exist-anywhere")
+	sessionData := `{"sessionId":"sess1","cwd":"` + filepath.ToSlash(nonexistentPath) + `","timestamp":"2025-01-01T00:00:00Z"}`
 	require.NoError(t, os.WriteFile(filepath.Join(projectDir, "session.jsonl"), []byte(sessionData), 0644))
 
 	// Set environment to use temp dir
-	oldHome := os.Getenv("HOME")
-	os.Setenv("HOME", tmpDir)
-	defer os.Setenv("HOME", oldHome)
+	cleanup := setTestHome(t, tmpDir)
+	defer cleanup()
 
 	var stdout, stderr bytes.Buffer
 	stdin := strings.NewReader("")
@@ -235,13 +256,14 @@ func TestRunCLI_CleanProjectsWithConfirmation(t *testing.T) {
 	// Create a stale project (cwd doesn't exist)
 	projectDir := filepath.Join(projectsDir, "-nonexistent-path")
 	require.NoError(t, os.MkdirAll(projectDir, 0755))
-	sessionData := `{"sessionId":"sess1","cwd":"/nonexistent/path","timestamp":"2025-01-01T00:00:00Z"}`
+	// Use a path that doesn't exist on any platform
+	nonexistentPath := filepath.Join(tmpDir, "this-path-does-not-exist-anywhere")
+	sessionData := `{"sessionId":"sess1","cwd":"` + filepath.ToSlash(nonexistentPath) + `","timestamp":"2025-01-01T00:00:00Z"}`
 	require.NoError(t, os.WriteFile(filepath.Join(projectDir, "session.jsonl"), []byte(sessionData), 0644))
 
 	// Set environment to use temp dir
-	oldHome := os.Getenv("HOME")
-	os.Setenv("HOME", tmpDir)
-	defer os.Setenv("HOME", oldHome)
+	cleanup := setTestHome(t, tmpDir)
+	defer cleanup()
 
 	var stdout, stderr bytes.Buffer
 	stdin := strings.NewReader("y\n") // Confirm yes
@@ -261,13 +283,14 @@ func TestRunCLI_CleanProjectsDeclined(t *testing.T) {
 	// Create a stale project (cwd doesn't exist)
 	projectDir := filepath.Join(projectsDir, "-nonexistent-path")
 	require.NoError(t, os.MkdirAll(projectDir, 0755))
-	sessionData := `{"sessionId":"sess1","cwd":"/nonexistent/path","timestamp":"2025-01-01T00:00:00Z"}`
+	// Use a path that doesn't exist on any platform
+	nonexistentPath := filepath.Join(tmpDir, "this-path-does-not-exist-anywhere")
+	sessionData := `{"sessionId":"sess1","cwd":"` + filepath.ToSlash(nonexistentPath) + `","timestamp":"2025-01-01T00:00:00Z"}`
 	require.NoError(t, os.WriteFile(filepath.Join(projectDir, "session.jsonl"), []byte(sessionData), 0644))
 
 	// Set environment to use temp dir
-	oldHome := os.Getenv("HOME")
-	os.Setenv("HOME", tmpDir)
-	defer os.Setenv("HOME", oldHome)
+	cleanup := setTestHome(t, tmpDir)
+	defer cleanup()
 
 	var stdout, stderr bytes.Buffer
 	stdin := strings.NewReader("n\n") // Decline
@@ -288,13 +311,14 @@ func TestRunCLI_CleanProjectsYesFlag(t *testing.T) {
 	// Create a stale project (cwd doesn't exist)
 	projectDir := filepath.Join(projectsDir, "-nonexistent-path")
 	require.NoError(t, os.MkdirAll(projectDir, 0755))
-	sessionData := `{"sessionId":"sess1","cwd":"/nonexistent/path","timestamp":"2025-01-01T00:00:00Z"}`
+	// Use a path that doesn't exist on any platform
+	nonexistentPath := filepath.Join(tmpDir, "this-path-does-not-exist-anywhere")
+	sessionData := `{"sessionId":"sess1","cwd":"` + filepath.ToSlash(nonexistentPath) + `","timestamp":"2025-01-01T00:00:00Z"}`
 	require.NoError(t, os.WriteFile(filepath.Join(projectDir, "session.jsonl"), []byte(sessionData), 0644))
 
 	// Set environment to use temp dir
-	oldHome := os.Getenv("HOME")
-	os.Setenv("HOME", tmpDir)
-	defer os.Setenv("HOME", oldHome)
+	cleanup := setTestHome(t, tmpDir)
+	defer cleanup()
 
 	var stdout, stderr bytes.Buffer
 	stdin := strings.NewReader("") // No input needed with --yes
@@ -318,9 +342,8 @@ func TestRunCLI_ListOrphans(t *testing.T) {
 	require.NoError(t, os.WriteFile(filepath.Join(todosDir, "orphan-agent-xyz.json"), []byte(`{}`), 0644))
 
 	// Set environment to use temp dir
-	oldHome := os.Getenv("HOME")
-	os.Setenv("HOME", tmpDir)
-	defer os.Setenv("HOME", oldHome)
+	cleanup := setTestHome(t, tmpDir)
+	defer cleanup()
 
 	var stdout, stderr bytes.Buffer
 	stdin := strings.NewReader("")
@@ -343,9 +366,8 @@ func TestRunCLI_CleanOrphansDryRun(t *testing.T) {
 	require.NoError(t, os.WriteFile(orphanTodo, []byte(`{}`), 0644))
 
 	// Set environment to use temp dir
-	oldHome := os.Getenv("HOME")
-	os.Setenv("HOME", tmpDir)
-	defer os.Setenv("HOME", oldHome)
+	cleanup := setTestHome(t, tmpDir)
+	defer cleanup()
 
 	var stdout, stderr bytes.Buffer
 	stdin := strings.NewReader("")
