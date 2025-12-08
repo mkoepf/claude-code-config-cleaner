@@ -48,13 +48,13 @@ ccc list orphans                   # List orphaned data without removing
 |-----------|--------|-------------|
 | `internal/cleaner/stale.go` | ✅ Complete | Find and clean stale projects |
 | `internal/cleaner/orphans.go` | ✅ Complete | Find and clean orphans |
-| `internal/cleaner/dedup.go` | ⬜ Not started | Config deduplication |
+| `internal/cleaner/dedup.go` | ✅ Complete | Config deduplication |
 
 ### Phase 4: CLI Interface
 
 | Component | Status | Description |
 |-----------|--------|-------------|
-| `cmd/ccc/main.go` | 🔲 Stub | Basic CLI structure |
+| `cmd/ccc/main.go` | ✅ Complete | Full CLI implementation |
 
 **Legend:** ✅ Complete | 🔲 Stub (tests written, not implemented) | ⬜ Not started
 
