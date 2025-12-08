@@ -40,13 +40,13 @@ ccc list orphans                   # List orphaned data without removing
 |-----------|--------|-------------|
 | `internal/ui/preview.go` | ✅ Complete | Preview display formatting |
 | `internal/ui/confirm.go` | ✅ Complete | Confirmation prompts |
-| `internal/ui/audit.go` | ⬜ Not started | Audit trail logging |
+| `internal/ui/audit.go` | ✅ Complete | Audit trail logging |
 
 ### Phase 3: Cleanup Operations
 
 | Component | Status | Description |
 |-----------|--------|-------------|
-| `internal/cleaner/stale.go` | ⬜ Not started | Find and clean stale projects |
+| `internal/cleaner/stale.go` | ✅ Complete | Find and clean stale projects |
 | `internal/cleaner/orphans.go` | ⬜ Not started | Find and clean orphans |
 | `internal/cleaner/dedup.go` | ⬜ Not started | Config deduplication |
 
