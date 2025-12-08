@@ -1,8 +1,8 @@
 # CleanClaudeConfig (ccc)
 
-[![CI](https://github.com/mhk/ccc/actions/workflows/ci.yml/badge.svg)](https://github.com/mhk/ccc/actions/workflows/ci.yml)
-[![Go Report Card](https://goreportcard.com/badge/github.com/mhk/ccc)](https://goreportcard.com/report/github.com/mhk/ccc)
-[![Coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/mhk/GIST_ID/raw/ccc-coverage.json)](https://github.com/mhk/ccc/actions/workflows/ci.yml)
+[![CI](https://github.com/mkoepf/ccc/actions/workflows/ci.yml/badge.svg)](https://github.com/mkoepf/ccc/actions/workflows/ci.yml)
+[![Go Report Card](https://goreportcard.com/badge/github.com/mkoepf/ccc)](https://goreportcard.com/report/github.com/mkoepf/ccc)
+[![Coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/mkoepf/GIST_ID/raw/ccc-coverage.json)](https://github.com/mkoepf/ccc/actions/workflows/ci.yml)
 
 A CLI utility to clean up Claude Code configuration by:
 
