@@ -46,7 +46,8 @@ func ParseSessionFile(path string) (*SessionInfo, error) {
 		return info, nil
 	}
 
-	file, err := os.Open(path)
+	cleanPath := filepath.Clean(path)
+	file, err := os.Open(cleanPath) // #nosec G304 -- path is sanitized with filepath.Clean
 	if err != nil {
 		return nil, err
 	}

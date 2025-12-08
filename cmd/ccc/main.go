@@ -190,7 +190,7 @@ func cleanProjects(args *Args, paths *claude.Paths, stdin io.Reader, stdout, std
 
 	if args.DryRun {
 		fmt.Fprintln(stdout, "[DRY RUN]")
-		preview.Display(stdout)
+		_ = preview.Display(stdout)
 		return 0
 	}
 
@@ -222,7 +222,7 @@ func cleanProjects(args *Args, paths *claude.Paths, stdin io.Reader, stdout, std
 		totalSaved += result.SizeSaved
 
 		if auditLogger != nil {
-			auditLogger.Log(ui.ActionDelete, p.ActualPath, result.SizeSaved)
+			_ = auditLogger.Log(ui.ActionDelete, p.ActualPath, result.SizeSaved)
 		}
 	}
 
@@ -259,7 +259,7 @@ func cleanOrphans(args *Args, paths *claude.Paths, stdin io.Reader, stdout, stde
 
 	if args.DryRun {
 		fmt.Fprintln(stdout, "[DRY RUN]")
-		preview.Display(stdout)
+		_ = preview.Display(stdout)
 		return 0
 	}
 
@@ -291,7 +291,7 @@ func cleanOrphans(args *Args, paths *claude.Paths, stdin io.Reader, stdout, stde
 	for _, r := range results {
 		totalSaved += r.SizeSaved
 		if auditLogger != nil {
-			auditLogger.Log(ui.ActionDelete, r.Path, r.SizeSaved)
+			_ = auditLogger.Log(ui.ActionDelete, r.Path, r.SizeSaved)
 		}
 	}
 
@@ -350,7 +350,7 @@ func cleanConfig(args *Args, paths *claude.Paths, stdin io.Reader, stdout, stder
 
 	if args.DryRun {
 		fmt.Fprintln(stdout, "[DRY RUN]")
-		preview.Display(stdout)
+		_ = preview.Display(stdout)
 		return 0
 	}
 
@@ -379,9 +379,9 @@ func cleanConfig(args *Args, paths *claude.Paths, stdin io.Reader, stdout, stder
 		}
 		if auditLogger != nil {
 			if r.SuggestDelete {
-				auditLogger.Log(ui.ActionDelete, r.LocalPath, 0)
+				_ = auditLogger.Log(ui.ActionDelete, r.LocalPath, 0)
 			} else {
-				auditLogger.Log(ui.ActionModify, r.LocalPath, 0)
+				_ = auditLogger.Log(ui.ActionModify, r.LocalPath, 0)
 			}
 		}
 	}
@@ -463,7 +463,7 @@ func listOrphans(paths *claude.Paths, stdout, stderr io.Writer) int {
 	}
 
 	preview := cleaner.BuildOrphanPreview(orphans)
-	preview.Display(stdout)
+	_ = preview.Display(stdout)
 
 	return 0
 }

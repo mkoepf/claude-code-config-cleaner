@@ -137,7 +137,7 @@ func ApplyDedup(result *DedupResult, dryRun bool) error {
 		return err
 	}
 
-	return os.WriteFile(result.LocalPath, data, 0644)
+	return os.WriteFile(result.LocalPath, data, 0600)
 }
 
 // removeEntries returns a new slice with specified entries removed.

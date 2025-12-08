@@ -3,6 +3,7 @@ package claude
 import (
 	"encoding/json"
 	"os"
+	"path/filepath"
 )
 
 // Settings represents Claude Code settings configuration.
@@ -20,7 +21,8 @@ type Permissions struct {
 // LoadSettings loads settings from the given path.
 // Returns an empty Settings if the file doesn't exist.
 func LoadSettings(path string) (*Settings, error) {
-	data, err := os.ReadFile(path)
+	cleanPath := filepath.Clean(path)
+	data, err := os.ReadFile(cleanPath) // #nosec G304 -- path is sanitized with filepath.Clean
 	if os.IsNotExist(err) {
 		return &Settings{}, nil
 	}

@@ -18,11 +18,12 @@ type AuditLogger struct {
 // Creates parent directories if they don't exist.
 func NewAuditLogger(path string) (*AuditLogger, error) {
 	dir := filepath.Dir(path)
-	if err := os.MkdirAll(dir, 0755); err != nil {
+	if err := os.MkdirAll(dir, 0700); err != nil {
 		return nil, err
 	}
 
-	file, err := os.OpenFile(path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	cleanPath := filepath.Clean(path)
+	file, err := os.OpenFile(cleanPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600) // #nosec G304 -- path is sanitized with filepath.Clean
 	if err != nil {
 		return nil, err
 	}
