@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": ["Bash(git add:*)", "Bash(go test:*)"],
+    "deny": [],
+    "ask": []
+  }
+}
