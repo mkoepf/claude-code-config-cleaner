@@ -1,8 +1,8 @@
-# cccc - Clean Claude Code Config
+# Claude Code Config Cleaner
 
-[![CI](https://github.com/mkoepf/clean-claude-code-config/actions/workflows/ci.yml/badge.svg)](https://github.com/mkoepf/clean-claude-code-config/actions/workflows/ci.yml)
-[![Go Report Card](https://goreportcard.com/badge/github.com/mkoepf/cccc)](https://goreportcard.com/report/github.com/mkoepf/cccc)
-[![Coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/mkoepf/baae226f8088579c1405b06f7dd1a07a/raw/cccc-coverage.json)](https://github.com/mkoepf/clean-claude-code-config/actions/workflows/ci.yml)
+[![CI](https://github.com/mkoepf/claude-code-config-cleaner/actions/workflows/ci.yml/badge.svg)](https://github.com/mkoepf/claude-code-config-cleaner/actions/workflows/ci.yml)
+[![Go Report Card](https://goreportcard.com/badge/github.com/mkoepf/claude-code-config-cleaner)](https://goreportcard.com/report/github.com/mkoepf/claude-code-config-cleaner)
+[![Coverage](https://img.shields.io/endpoint?url=https://gist.githubusercontent.com/mkoepf/baae226f8088579c1405b06f7dd1a07a/raw/cccc-coverage.json)](https://github.com/mkoepf/claude-code-config-cleaner/actions/workflows/ci.yml)
 
 A CLI utility to clean up Claude Code configuration by:
 

@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mkoepf/cccc/internal/claude"
+	"github.com/mkoepf/claude-code-config-cleaner/internal/claude"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

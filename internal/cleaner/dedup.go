@@ -7,8 +7,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/mkoepf/cccc/internal/claude"
-	"github.com/mkoepf/cccc/internal/ui"
+	"github.com/mkoepf/claude-code-config-cleaner/internal/claude"
+	"github.com/mkoepf/claude-code-config-cleaner/internal/ui"
 )
 
 // DedupResult represents the result of deduplicating a local config.

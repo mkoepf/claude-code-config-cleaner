@@ -5,8 +5,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/mkoepf/cccc/internal/claude"
-	"github.com/mkoepf/cccc/internal/ui"
+	"github.com/mkoepf/claude-code-config-cleaner/internal/claude"
+	"github.com/mkoepf/claude-code-config-cleaner/internal/ui"
 )
 
 // StaleResult represents the result of cleaning a stale project.

@@ -10,9 +10,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mkoepf/cccc/internal/claude"
-	"github.com/mkoepf/cccc/internal/cleaner"
-	"github.com/mkoepf/cccc/internal/ui"
+	"github.com/mkoepf/claude-code-config-cleaner/internal/claude"
+	"github.com/mkoepf/claude-code-config-cleaner/internal/cleaner"
+	"github.com/mkoepf/claude-code-config-cleaner/internal/ui"
 )
 
 // TestSafety_NeverDeletesExistingProject verifies that the cleaner never

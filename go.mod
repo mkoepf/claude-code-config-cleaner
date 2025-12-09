@@ -1,4 +1,4 @@
-module github.com/mkoepf/cccc
+module github.com/mkoepf/claude-code-config-cleaner
 
 go 1.25.5
 

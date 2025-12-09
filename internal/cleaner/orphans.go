@@ -5,8 +5,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/mkoepf/cccc/internal/claude"
-	"github.com/mkoepf/cccc/internal/ui"
+	"github.com/mkoepf/claude-code-config-cleaner/internal/claude"
+	"github.com/mkoepf/claude-code-config-cleaner/internal/ui"
 )
 
 // OrphanType identifies the type of orphan data.

@@ -5,8 +5,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/mkoepf/cccc/internal/claude"
-	"github.com/mkoepf/cccc/internal/ui"
+	"github.com/mkoepf/claude-code-config-cleaner/internal/claude"
+	"github.com/mkoepf/claude-code-config-cleaner/internal/ui"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
