@@ -43,8 +43,9 @@ func TestSafety_NeverDeletesExistingProject(t *testing.T) {
 		}
 
 		// Create a session file with the cwd pointing to the existing path
+		// Use filepath.ToSlash to ensure paths work in JSON on Windows
 		sessionFile := filepath.Join(projectDir, "session.jsonl")
-		sessionContent := `{"sessionId":"session-` + string(rune('a'+i%26)) + `","cwd":"` + existingPath + `","timestamp":"2025-01-01T00:00:00Z"}` + "\n"
+		sessionContent := `{"sessionId":"session-` + string(rune('a'+i%26)) + `","cwd":"` + filepath.ToSlash(existingPath) + `","timestamp":"2025-01-01T00:00:00Z"}` + "\n"
 		if err := os.WriteFile(sessionFile, []byte(sessionContent), 0644); err != nil {
 			t.Fatalf("failed to write session file: %v", err)
 		}
@@ -256,7 +257,8 @@ func TestSafety_PreviewMatchesAction(t *testing.T) {
 		t.Fatalf("failed to create stale project dir: %v", err)
 	}
 	staleSession := filepath.Join(staleDir, "session.jsonl")
-	if err := os.WriteFile(staleSession, []byte(`{"sessionId":"stale","cwd":"`+staleProjectPath+`","timestamp":"2025-01-01T00:00:00Z"}`+"\n"), 0644); err != nil {
+	// Use filepath.ToSlash to ensure paths work in JSON on Windows
+	if err := os.WriteFile(staleSession, []byte(`{"sessionId":"stale","cwd":"`+filepath.ToSlash(staleProjectPath)+`","timestamp":"2025-01-01T00:00:00Z"}`+"\n"), 0644); err != nil {
 		t.Fatalf("failed to write stale session: %v", err)
 	}
 
@@ -267,7 +269,8 @@ func TestSafety_PreviewMatchesAction(t *testing.T) {
 		t.Fatalf("failed to create valid project dir: %v", err)
 	}
 	validSession := filepath.Join(validDir, "session.jsonl")
-	if err := os.WriteFile(validSession, []byte(`{"sessionId":"valid","cwd":"`+validProjectPath+`","timestamp":"2025-01-01T00:00:00Z"}`+"\n"), 0644); err != nil {
+	// Use filepath.ToSlash to ensure paths work in JSON on Windows
+	if err := os.WriteFile(validSession, []byte(`{"sessionId":"valid","cwd":"`+filepath.ToSlash(validProjectPath)+`","timestamp":"2025-01-01T00:00:00Z"}`+"\n"), 0644); err != nil {
 		t.Fatalf("failed to write valid session: %v", err)
 	}
 
@@ -351,7 +354,8 @@ func TestSafety_DryRunNeverModifies(t *testing.T) {
 		t.Fatalf("failed to create stale project dir: %v", err)
 	}
 	staleSession := filepath.Join(staleDir, "session.jsonl")
-	sessionContent := `{"sessionId":"stale","cwd":"` + staleProjectPath + `","timestamp":"2025-01-01T00:00:00Z"}` + "\n"
+	// Use filepath.ToSlash to ensure paths work in JSON on Windows
+	sessionContent := `{"sessionId":"stale","cwd":"` + filepath.ToSlash(staleProjectPath) + `","timestamp":"2025-01-01T00:00:00Z"}` + "\n"
 	if err := os.WriteFile(staleSession, []byte(sessionContent), 0644); err != nil {
 		t.Fatalf("failed to write stale session: %v", err)
 	}

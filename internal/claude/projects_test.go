@@ -14,7 +14,8 @@ func createTestProject(t *testing.T, baseDir, encodedName, cwd string) string {
 	projectDir := filepath.Join(baseDir, encodedName)
 	require.NoError(t, os.MkdirAll(projectDir, 0755))
 
-	content := `{"sessionId":"test-session","cwd":"` + cwd + `","timestamp":"2025-12-06T10:00:00Z"}`
+	// Use filepath.ToSlash to ensure paths work in JSON on Windows
+	content := `{"sessionId":"test-session","cwd":"` + filepath.ToSlash(cwd) + `","timestamp":"2025-12-06T10:00:00Z"}`
 	sessionFile := filepath.Join(projectDir, "session.jsonl")
 	require.NoError(t, os.WriteFile(sessionFile, []byte(content), 0644))
 

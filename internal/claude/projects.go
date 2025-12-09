@@ -68,7 +68,8 @@ func ScanProjects(projectsDir string) ([]Project, error) {
 
 			if !info.IsEmpty {
 				if project.ActualPath == "" {
-					project.ActualPath = info.CWD
+					// Normalize path separators for the current OS
+					project.ActualPath = filepath.FromSlash(info.CWD)
 				}
 				if info.ID != "" {
 					project.SessionIDs = append(project.SessionIDs, info.ID)
