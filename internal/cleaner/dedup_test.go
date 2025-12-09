@@ -331,3 +331,94 @@ func TestDedupResult_TotalDuplicates(t *testing.T) {
 
 	assert.Equal(t, 6, result.TotalDuplicates())
 }
+
+func TestDedupResult_FormatVerbose(t *testing.T) {
+	globalPath := "/home/user/.claude/settings.json"
+	result := DedupResult{
+		LocalPath:      "/home/user/projects/myapp/.claude/settings.json",
+		DuplicateAllow: []string{"Bash(git:*)", "Read(**)"},
+		DuplicateDeny:  []string{"Bash(rm -rf:*)"},
+		DuplicateAsk:   []string{"Write(**)"},
+		SuggestDelete:  false,
+	}
+
+	output := result.FormatVerbose(globalPath)
+
+	// Should include local path
+	assert.Contains(t, output, "/home/user/projects/myapp/.claude/settings.json")
+
+	// Should mention global config
+	assert.Contains(t, output, globalPath)
+
+	// Should list allow duplicates
+	assert.Contains(t, output, "Bash(git:*)")
+	assert.Contains(t, output, "Read(**)")
+
+	// Should list deny duplicates
+	assert.Contains(t, output, "Bash(rm -rf:*)")
+
+	// Should list ask duplicates
+	assert.Contains(t, output, "Write(**)")
+
+	// Should indicate which category
+	assert.Contains(t, output, "allow")
+	assert.Contains(t, output, "deny")
+	assert.Contains(t, output, "ask")
+}
+
+func TestDedupResult_FormatVerbose_SuggestDelete(t *testing.T) {
+	globalPath := "/home/user/.claude/settings.json"
+	result := DedupResult{
+		LocalPath:      "/home/user/projects/myapp/.claude/settings.json",
+		DuplicateAllow: []string{"Bash(git:*)"},
+		SuggestDelete:  true,
+	}
+
+	output := result.FormatVerbose(globalPath)
+
+	// Should indicate file will be deleted
+	assert.Contains(t, output, "delete")
+}
+
+func TestDedupResult_FormatVerbose_NoDuplicates(t *testing.T) {
+	globalPath := "/home/user/.claude/settings.json"
+	result := DedupResult{
+		LocalPath:     "/home/user/projects/myapp/.claude/settings.json",
+		SuggestDelete: false,
+	}
+
+	output := result.FormatVerbose(globalPath)
+
+	// Should indicate no duplicates
+	assert.Contains(t, output, "No duplicates")
+}
+
+func TestBuildDedupPreview_Verbose(t *testing.T) {
+	globalPath := "/home/user/.claude/settings.json"
+	results := []DedupResult{
+		{
+			LocalPath:      "/project1/.claude/settings.json",
+			DuplicateAllow: []string{"Bash(git:*)"},
+			DuplicateDeny:  []string{"Bash(rm:*)"},
+			SuggestDelete:  false,
+		},
+		{
+			LocalPath:      "/project2/.claude/settings.json",
+			DuplicateAllow: []string{"Read(**)"},
+			SuggestDelete:  true,
+		},
+	}
+
+	preview := BuildDedupPreviewVerbose(results, globalPath)
+
+	assert.Equal(t, "Config Deduplication", preview.Title)
+	assert.Len(t, preview.Changes, 2)
+
+	// First change should have verbose description with duplicates listed
+	assert.Contains(t, preview.Changes[0].Description, "Bash(git:*)")
+	assert.Contains(t, preview.Changes[0].Description, "Bash(rm:*)")
+
+	// Second change should indicate deletion
+	assert.Equal(t, ui.ActionDelete, preview.Changes[1].Action)
+	assert.Contains(t, preview.Changes[1].Description, "Read(**)")
+}

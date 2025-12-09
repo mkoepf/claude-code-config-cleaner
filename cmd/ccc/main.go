@@ -18,6 +18,7 @@ type Args struct {
 	DryRun     bool
 	Yes        bool
 	StaleOnly  bool
+	Verbose    bool
 	Help       bool
 }
 
@@ -80,6 +81,8 @@ func parseArgs(osArgs []string) (*Args, error) {
 			args.Yes = true
 		case "--stale-only":
 			args.StaleOnly = true
+		case "-v", "--verbose":
+			args.Verbose = true
 		case "clean", "list":
 			if args.Command == "" {
 				args.Command = arg
@@ -115,10 +118,11 @@ func printHelp(w io.Writer) {
 	fmt.Fprintln(w, "  ccc list orphans                  List orphaned data without removing")
 	fmt.Fprintln(w, "")
 	fmt.Fprintln(w, "Flags:")
-	fmt.Fprintln(w, "  --dry-run    Show what would be cleaned without making changes")
-	fmt.Fprintln(w, "  --yes, -y    Skip confirmation prompts")
-	fmt.Fprintln(w, "  --stale-only Show only stale projects (with list command)")
-	fmt.Fprintln(w, "  --help, -h   Show this help message")
+	fmt.Fprintln(w, "  --dry-run      Show what would be cleaned without making changes")
+	fmt.Fprintln(w, "  --yes, -y      Skip confirmation prompts")
+	fmt.Fprintln(w, "  --verbose, -v  Show detailed output (e.g., list duplicate entries)")
+	fmt.Fprintln(w, "  --stale-only   Show only stale projects (with list command)")
+	fmt.Fprintln(w, "  --help, -h     Show this help message")
 }
 
 // handleClean handles the "clean" command and subcommands.
@@ -346,7 +350,13 @@ func cleanConfig(args *Args, paths *claude.Paths, stdin io.Reader, stdout, stder
 		return 0
 	}
 
-	preview := cleaner.BuildDedupPreview(results)
+	// Use verbose preview if requested
+	var preview *ui.Preview
+	if args.Verbose {
+		preview = cleaner.BuildDedupPreviewVerbose(results, paths.Settings)
+	} else {
+		preview = cleaner.BuildDedupPreview(results)
+	}
 
 	if args.DryRun {
 		fmt.Fprintln(stdout, "[DRY RUN]")

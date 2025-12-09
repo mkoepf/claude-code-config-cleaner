@@ -378,3 +378,52 @@ func TestRunCLI_CleanOrphansDryRun(t *testing.T) {
 	// Todo should still exist (dry run)
 	assert.FileExists(t, orphanTodo)
 }
+
+func TestParseArgs_VerboseFlag(t *testing.T) {
+	args, err := parseArgs([]string{"clean", "config", "--verbose"})
+	require.NoError(t, err)
+	assert.Equal(t, "clean", args.Command)
+	assert.Equal(t, "config", args.Subcommand)
+	assert.True(t, args.Verbose)
+}
+
+func TestParseArgs_ShortVerboseFlag(t *testing.T) {
+	args, err := parseArgs([]string{"clean", "config", "-v"})
+	require.NoError(t, err)
+	assert.True(t, args.Verbose)
+}
+
+func TestRunCLI_CleanConfigVerboseDryRun(t *testing.T) {
+	tmpDir := t.TempDir()
+	claudeDir := filepath.Join(tmpDir, ".claude")
+	projectsDir := filepath.Join(claudeDir, "projects")
+	require.NoError(t, os.MkdirAll(projectsDir, 0755))
+
+	// Create global settings with some permissions
+	globalSettings := `{"permissions":{"allow":["Bash(git:*)","Read(**)"],"deny":["Bash(rm -rf:*)"]}}`
+	require.NoError(t, os.WriteFile(filepath.Join(claudeDir, "settings.json"), []byte(globalSettings), 0644))
+
+	// Create a project with local settings that duplicate global
+	projectDir := filepath.Join(tmpDir, "myproject")
+	projectClaudeDir := filepath.Join(projectDir, ".claude")
+	require.NoError(t, os.MkdirAll(projectClaudeDir, 0755))
+	localSettings := `{"permissions":{"allow":["Bash(git:*)","Bash(npm:*)"],"deny":["Bash(rm -rf:*)"]}}`
+	require.NoError(t, os.WriteFile(filepath.Join(projectClaudeDir, "settings.json"), []byte(localSettings), 0644))
+
+	// Set environment to use temp dir
+	cleanup := setTestHome(t, tmpDir)
+	defer cleanup()
+
+	var stdout, stderr bytes.Buffer
+	stdin := strings.NewReader("")
+
+	code := runCLI([]string{"clean", "config", "--dry-run", "--verbose"}, stdin, &stdout, &stderr)
+
+	assert.Equal(t, 0, code)
+	output := stdout.String()
+	// Verbose should show the specific duplicate entries
+	assert.Contains(t, output, "Bash(git:*)")
+	assert.Contains(t, output, "Bash(rm -rf:*)")
+	// Should show the global config path
+	assert.Contains(t, output, "settings.json")
+}

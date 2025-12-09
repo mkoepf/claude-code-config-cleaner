@@ -2,8 +2,10 @@ package cleaner
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/mhk/ccc/internal/claude"
 	"github.com/mhk/ccc/internal/ui"
@@ -196,5 +198,107 @@ func formatDuplicateDescription(r DedupResult) string {
 	if total == 1 {
 		return "1 duplicate entry to remove"
 	}
-	return string(rune(total+'0')) + " duplicate entries to remove"
+	return fmt.Sprintf("%d duplicate entries to remove", total)
+}
+
+// FormatVerbose returns a detailed description of duplicates found,
+// including which entries are duplicated and where they exist globally.
+func (r *DedupResult) FormatVerbose(globalPath string) string {
+	if !r.HasDuplicates() && !r.SuggestDelete {
+		return fmt.Sprintf("No duplicates found in %s", r.LocalPath)
+	}
+
+	var sb strings.Builder
+
+	sb.WriteString(fmt.Sprintf("Local config: %s\n", r.LocalPath))
+	sb.WriteString(fmt.Sprintf("Duplicates of global config: %s\n", globalPath))
+
+	if len(r.DuplicateAllow) > 0 {
+		sb.WriteString("\n  Duplicate 'allow' entries:\n")
+		for _, entry := range r.DuplicateAllow {
+			sb.WriteString(fmt.Sprintf("    - %s\n", entry))
+		}
+	}
+
+	if len(r.DuplicateDeny) > 0 {
+		sb.WriteString("\n  Duplicate 'deny' entries:\n")
+		for _, entry := range r.DuplicateDeny {
+			sb.WriteString(fmt.Sprintf("    - %s\n", entry))
+		}
+	}
+
+	if len(r.DuplicateAsk) > 0 {
+		sb.WriteString("\n  Duplicate 'ask' entries:\n")
+		for _, entry := range r.DuplicateAsk {
+			sb.WriteString(fmt.Sprintf("    - %s\n", entry))
+		}
+	}
+
+	if r.SuggestDelete {
+		sb.WriteString("\n  Action: delete file (no unique entries remain)\n")
+	} else {
+		sb.WriteString(fmt.Sprintf("\n  Action: remove %d duplicate entries\n", r.TotalDuplicates()))
+	}
+
+	return sb.String()
+}
+
+// BuildDedupPreviewVerbose creates a verbose preview of configs to be deduplicated.
+func BuildDedupPreviewVerbose(results []DedupResult, globalPath string) *ui.Preview {
+	preview := &ui.Preview{
+		Title: "Config Deduplication",
+	}
+
+	for _, r := range results {
+		var action ui.Action
+		var description string
+
+		if r.SuggestDelete {
+			action = ui.ActionDelete
+			description = formatVerboseDescription(r, globalPath, true)
+		} else {
+			action = ui.ActionModify
+			description = formatVerboseDescription(r, globalPath, false)
+		}
+
+		preview.Changes = append(preview.Changes, ui.Change{
+			Action:      action,
+			Path:        r.LocalPath,
+			Description: description,
+			Size:        0,
+		})
+	}
+
+	return preview
+}
+
+// formatVerboseDescription creates a verbose description listing all duplicates.
+func formatVerboseDescription(r DedupResult, globalPath string, willDelete bool) string {
+	var sb strings.Builder
+
+	sb.WriteString(fmt.Sprintf("Duplicates of %s:\n", globalPath))
+
+	if len(r.DuplicateAllow) > 0 {
+		sb.WriteString("     allow: ")
+		sb.WriteString(strings.Join(r.DuplicateAllow, ", "))
+		sb.WriteString("\n")
+	}
+
+	if len(r.DuplicateDeny) > 0 {
+		sb.WriteString("     deny: ")
+		sb.WriteString(strings.Join(r.DuplicateDeny, ", "))
+		sb.WriteString("\n")
+	}
+
+	if len(r.DuplicateAsk) > 0 {
+		sb.WriteString("     ask: ")
+		sb.WriteString(strings.Join(r.DuplicateAsk, ", "))
+		sb.WriteString("\n")
+	}
+
+	if willDelete {
+		sb.WriteString("     File will be deleted (no unique entries remain)")
+	}
+
+	return sb.String()
 }
