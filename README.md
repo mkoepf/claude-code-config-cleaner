@@ -54,6 +54,58 @@ docker build -t cccc-test -f test/Dockerfile . && docker run --rm cccc-test  # E
 - **Stale project**: A project directory registered in `~/.claude/projects/` whose corresponding source directory no longer exists on disk.
 - **Orphaned data**: Files in `todos/`, `file-history/`, or `session-env/` that reference sessions which no longer exist, or empty session directories.
 
+## Config Deduplication
+
+Claude Code stores permissions in two places:
+- **Global settings**: `~/.claude/settings.json` - applies to all projects
+- **Local settings**: `<project>/.claude/settings.local.json` - project-specific overrides
+
+Over time, local configs can accumulate entries that duplicate global settings. The `clean config` command removes these redundant entries.
+
+### Example
+
+**Global settings** (`~/.claude/settings.json`):
+```json
+{
+  "permissions": {
+    "allow": [
+      "Bash(git:*)",
+      "Bash(npm:*)"
+    ],
+    "deny": []
+  }
+}
+```
+
+**Local settings before** (`~/Code/myproject/.claude/settings.local.json`):
+```json
+{
+  "permissions": {
+    "allow": [
+      "Bash(git:*)",
+      "Bash(make:*)"
+    ],
+    "deny": []
+  }
+}
+```
+
+Running `cccc clean config` identifies `Bash(git:*)` as a duplicate (already in global) and removes it:
+
+**Local settings after**:
+```json
+{
+  "permissions": {
+    "allow": [
+      "Bash(make:*)"
+    ],
+    "deny": []
+  }
+}
+```
+
+If all entries in a local config are duplicates of global settings, the local file is deleted entirely.
+
 ## Claude Code Directory Layout
 
 The tool was developed against Claude Code 2.0.62 and assumes the following
