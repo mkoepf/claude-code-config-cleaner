@@ -33,11 +33,19 @@ func (r *DedupResult) TotalDuplicates() int {
 }
 
 // FindLocalConfigs searches for local .claude/settings.json files under the given path.
-func FindLocalConfigs(searchPath string) ([]string, error) {
+// It excludes the global config file specified by excludePath.
+// Note: This function walks the entire directory tree which can be slow.
+// Consider using FindLocalConfigsFromProjects for better performance.
+func FindLocalConfigs(searchPath string, excludePath string) ([]string, error) {
 	var configs []string
 
 	if _, err := os.Stat(searchPath); os.IsNotExist(err) {
 		return configs, nil
+	}
+
+	// Normalize exclude path for comparison
+	if excludePath != "" {
+		excludePath = filepath.Clean(excludePath)
 	}
 
 	err := filepath.Walk(searchPath, func(path string, info os.FileInfo, err error) error {
@@ -52,6 +60,11 @@ func FindLocalConfigs(searchPath string) ([]string, error) {
 		// Check if this is a .claude/settings.json file
 		dir := filepath.Dir(path)
 		if filepath.Base(dir) == ".claude" && filepath.Base(path) == "settings.json" {
+			// Exclude the global config
+			cleanPath := filepath.Clean(path)
+			if excludePath != "" && cleanPath == excludePath {
+				return nil
+			}
 			configs = append(configs, path)
 		}
 
@@ -63,6 +76,22 @@ func FindLocalConfigs(searchPath string) ([]string, error) {
 	}
 
 	return configs, nil
+}
+
+// FindLocalConfigsFromProjects efficiently finds local .claude/settings.json files
+// by only checking the specific project directories provided.
+// This is much faster than walking the entire home directory.
+func FindLocalConfigsFromProjects(projectPaths []string) []string {
+	var configs []string
+
+	for _, projectPath := range projectPaths {
+		settingsPath := filepath.Join(projectPath, ".claude", "settings.json")
+		if _, err := os.Stat(settingsPath); err == nil {
+			configs = append(configs, settingsPath)
+		}
+	}
+
+	return configs
 }
 
 // DeduplicateConfig compares local settings against global settings

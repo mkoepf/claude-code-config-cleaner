@@ -403,12 +403,18 @@ func TestRunCLI_CleanConfigVerboseDryRun(t *testing.T) {
 	globalSettings := `{"permissions":{"allow":["Bash(git:*)","Read(**)"],"deny":["Bash(rm -rf:*)"]}}`
 	require.NoError(t, os.WriteFile(filepath.Join(claudeDir, "settings.json"), []byte(globalSettings), 0644))
 
-	// Create a project with local settings that duplicate global
+	// Create a project directory with local settings that duplicate global
 	projectDir := filepath.Join(tmpDir, "myproject")
 	projectClaudeDir := filepath.Join(projectDir, ".claude")
 	require.NoError(t, os.MkdirAll(projectClaudeDir, 0755))
 	localSettings := `{"permissions":{"allow":["Bash(git:*)","Bash(npm:*)"],"deny":["Bash(rm -rf:*)"]}}`
 	require.NoError(t, os.WriteFile(filepath.Join(projectClaudeDir, "settings.json"), []byte(localSettings), 0644))
+
+	// Register this project in ~/.claude/projects/ so ScanProjects can find it
+	encodedProjectDir := filepath.Join(projectsDir, "-myproject")
+	require.NoError(t, os.MkdirAll(encodedProjectDir, 0755))
+	sessionData := `{"sessionId":"sess1","cwd":"` + filepath.ToSlash(projectDir) + `","timestamp":"2025-01-01T00:00:00Z"}`
+	require.NoError(t, os.WriteFile(filepath.Join(encodedProjectDir, "session.jsonl"), []byte(sessionData), 0644))
 
 	// Set environment to use temp dir
 	cleanup := setTestHome(t, tmpDir)

@@ -312,18 +312,23 @@ func cleanConfig(args *Args, paths *claude.Paths, stdin io.Reader, stdout, stder
 		return 1
 	}
 
-	// Find local configs in home directory
-	home, err := os.UserHomeDir()
+	// Get project paths from scanned projects for fast config lookup
+	projects, err := claude.ScanProjects(paths.Projects)
 	if err != nil {
-		fmt.Fprintln(stderr, "Error getting home directory:", err)
+		fmt.Fprintln(stderr, "Error scanning projects:", err)
 		return 1
 	}
 
-	localConfigs, err := cleaner.FindLocalConfigs(home)
-	if err != nil {
-		fmt.Fprintln(stderr, "Error finding local configs:", err)
-		return 1
+	// Extract unique project paths
+	var projectPaths []string
+	for _, p := range projects {
+		if p.ActualPath != "" {
+			projectPaths = append(projectPaths, p.ActualPath)
+		}
 	}
+
+	// Find local configs only in known project directories (fast)
+	localConfigs := cleaner.FindLocalConfigsFromProjects(projectPaths)
 
 	if len(localConfigs) == 0 {
 		fmt.Fprintln(stdout, "No local configs found.")
