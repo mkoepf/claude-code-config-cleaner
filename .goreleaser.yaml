@@ -52,7 +52,7 @@ changelog:
 release:
   github:
     owner: mkoepf
-    name: clean-claude-code-config
+    name: claude-code-config-cleaner
   draft: false
   prerelease: auto
   name_template: "{{.ProjectName}} v{{.Version}}"
@@ -62,7 +62,7 @@ brews:
       owner: mkoepf
       name: homebrew-tap
       token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
-    homepage: "https://github.com/mkoepf/clean-claude-code-config"
+    homepage: "https://github.com/mkoepf/claude-code-config-cleaner"
     description: "CLI tool for cleaning up Claude Code configuration"
     license: "MIT"
     install: |
