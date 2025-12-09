@@ -66,39 +66,3 @@ func TestParseSessionFile_ReturnsFileSize(t *testing.T) {
 
 	assert.Equal(t, stat.Size(), info.Size)
 }
-
-func TestExtractCWD_FromProjectDir(t *testing.T) {
-	tmpDir := t.TempDir()
-	projectDir := filepath.Join(tmpDir, "-Users-test-project")
-	require.NoError(t, os.MkdirAll(projectDir, 0755))
-
-	content := `{"sessionId":"test","cwd":"/Users/test/project","timestamp":"2025-12-06T10:00:00Z"}`
-	sessionFile := filepath.Join(projectDir, "session.jsonl")
-	require.NoError(t, os.WriteFile(sessionFile, []byte(content), 0644))
-
-	cwd, err := ExtractCWD(projectDir)
-	require.NoError(t, err)
-
-	assert.Equal(t, "/Users/test/project", cwd)
-}
-
-func TestExtractCWD_EmptyProjectDir(t *testing.T) {
-	tmpDir := t.TempDir()
-	projectDir := filepath.Join(tmpDir, "-Users-test-empty")
-	require.NoError(t, os.MkdirAll(projectDir, 0755))
-
-	_, err := ExtractCWD(projectDir)
-	assert.Error(t, err, "expected error for empty project directory")
-}
-
-func TestExtractCWD_OnlyEmptySessionFiles(t *testing.T) {
-	tmpDir := t.TempDir()
-	projectDir := filepath.Join(tmpDir, "-Users-test-empty-sessions")
-	require.NoError(t, os.MkdirAll(projectDir, 0755))
-
-	sessionFile := filepath.Join(projectDir, "empty.jsonl")
-	require.NoError(t, os.WriteFile(sessionFile, []byte{}, 0644))
-
-	_, err := ExtractCWD(projectDir)
-	assert.Error(t, err, "expected error when all session files are empty")
-}

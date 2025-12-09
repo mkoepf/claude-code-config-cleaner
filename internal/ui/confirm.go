@@ -13,7 +13,6 @@ type ConfirmResult int
 const (
 	ConfirmYes ConfirmResult = iota
 	ConfirmNo
-	ConfirmError
 )
 
 // Confirmer handles user confirmation prompts.

@@ -32,52 +32,6 @@ func (r *DedupResult) TotalDuplicates() int {
 	return len(r.DuplicateAllow) + len(r.DuplicateDeny) + len(r.DuplicateAsk)
 }
 
-// FindLocalConfigs searches for local .claude/settings.local.json files under the given path.
-// It excludes the config file specified by excludePath.
-// Note: This function walks the entire directory tree which can be slow.
-// Consider using FindLocalConfigsFromProjects for better performance.
-func FindLocalConfigs(searchPath string, excludePath string) ([]string, error) {
-	var configs []string
-
-	if _, err := os.Stat(searchPath); os.IsNotExist(err) {
-		return configs, nil
-	}
-
-	// Normalize exclude path for comparison
-	if excludePath != "" {
-		excludePath = filepath.Clean(excludePath)
-	}
-
-	err := filepath.Walk(searchPath, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return nil // Skip errors
-		}
-
-		if info.IsDir() {
-			return nil
-		}
-
-		// Check if this is a .claude/settings.local.json file
-		dir := filepath.Dir(path)
-		if filepath.Base(dir) == ".claude" && filepath.Base(path) == "settings.local.json" {
-			// Exclude the specified path
-			cleanPath := filepath.Clean(path)
-			if excludePath != "" && cleanPath == excludePath {
-				return nil
-			}
-			configs = append(configs, path)
-		}
-
-		return nil
-	})
-
-	if err != nil {
-		return nil, err
-	}
-
-	return configs, nil
-}
-
 // FindLocalConfigsFromProjects efficiently finds local .claude/settings.local.json files
 // by only checking the specific project directories provided.
 // It excludes the config file specified by excludePath (typically ~/.claude/settings.local.json).
@@ -243,48 +197,6 @@ func formatDuplicateDescription(r DedupResult) string {
 		return "1 duplicate entry to remove"
 	}
 	return fmt.Sprintf("%d duplicate entries to remove", total)
-}
-
-// FormatVerbose returns a detailed description of duplicates found,
-// including which entries are duplicated and where they exist globally.
-func (r *DedupResult) FormatVerbose(globalPath string) string {
-	if !r.HasDuplicates() && !r.SuggestDelete {
-		return fmt.Sprintf("No duplicates found in %s", r.LocalPath)
-	}
-
-	var sb strings.Builder
-
-	sb.WriteString(fmt.Sprintf("Local config: %s\n", r.LocalPath))
-	sb.WriteString(fmt.Sprintf("Duplicates of global config: %s\n", globalPath))
-
-	if len(r.DuplicateAllow) > 0 {
-		sb.WriteString("\n  Duplicate 'allow' entries:\n")
-		for _, entry := range r.DuplicateAllow {
-			sb.WriteString(fmt.Sprintf("    - %s\n", entry))
-		}
-	}
-
-	if len(r.DuplicateDeny) > 0 {
-		sb.WriteString("\n  Duplicate 'deny' entries:\n")
-		for _, entry := range r.DuplicateDeny {
-			sb.WriteString(fmt.Sprintf("    - %s\n", entry))
-		}
-	}
-
-	if len(r.DuplicateAsk) > 0 {
-		sb.WriteString("\n  Duplicate 'ask' entries:\n")
-		for _, entry := range r.DuplicateAsk {
-			sb.WriteString(fmt.Sprintf("    - %s\n", entry))
-		}
-	}
-
-	if r.SuggestDelete {
-		sb.WriteString("\n  Action: delete file (no unique entries remain)\n")
-	} else {
-		sb.WriteString(fmt.Sprintf("\n  Action: remove %d duplicate entries\n", r.TotalDuplicates()))
-	}
-
-	return sb.String()
 }
 
 // BuildDedupPreviewVerbose creates a verbose preview of configs to be deduplicated.

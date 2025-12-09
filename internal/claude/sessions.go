@@ -79,35 +79,3 @@ func ParseSessionFile(path string) (*SessionInfo, error) {
 
 	return nil, ErrNoCWD
 }
-
-// ExtractCWD reads the first valid line from session files in a project directory
-// and returns the cwd field.
-func ExtractCWD(projectDir string) (string, error) {
-	entries, err := os.ReadDir(projectDir)
-	if err != nil {
-		return "", err
-	}
-
-	for _, entry := range entries {
-		if entry.IsDir() {
-			continue
-		}
-		if filepath.Ext(entry.Name()) != ".jsonl" {
-			continue
-		}
-
-		path := filepath.Join(projectDir, entry.Name())
-		info, err := ParseSessionFile(path)
-		if err != nil {
-			continue
-		}
-		if info.IsEmpty {
-			continue
-		}
-		if info.CWD != "" {
-			return info.CWD, nil
-		}
-	}
-
-	return "", ErrNoCWD
-}
