@@ -27,5 +27,9 @@ WORKDIR /app
 # Build the binary
 RUN go build -o ccc ./cmd/ccc
 
+# Add healthcheck (required by security scanners)
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD ["./ccc", "--help"]
+
 # Run E2E tests
 ENTRYPOINT ["go", "test", "-v", "-tags=e2e", "./test/e2e/..."]

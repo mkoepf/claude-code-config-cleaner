@@ -28,7 +28,7 @@ echo ""
 ###########################################
 # 1. Code Formatting Check (gofmt)
 ###########################################
-echo -e "${BLUE}[1/6] Checking code formatting with gofmt...${NC}"
+echo -e "${BLUE}[1/7] Checking code formatting with gofmt...${NC}"
 UNFORMATTED=$(gofmt -s -l . 2>&1)
 if [ -n "$UNFORMATTED" ]; then
     echo -e "${RED}✗ The following files are not formatted:${NC}"
@@ -44,7 +44,7 @@ echo ""
 ###########################################
 # 2. Build Check
 ###########################################
-echo -e "${BLUE}[2/6] Building binary...${NC}"
+echo -e "${BLUE}[2/7] Building binary...${NC}"
 if go build -v -o ccc ./cmd/ccc 2>&1 > /dev/null; then
     echo -e "${GREEN}✓ Build successful${NC}"
 
@@ -67,7 +67,7 @@ echo ""
 ###########################################
 # 3. Static Analysis (go vet)
 ###########################################
-echo -e "${BLUE}[3/6] Running static analysis with go vet...${NC}"
+echo -e "${BLUE}[3/7] Running static analysis with go vet...${NC}"
 if go vet ./... 2>&1; then
     echo -e "${GREEN}✓ go vet passed${NC}"
 else
@@ -78,27 +78,9 @@ echo ""
 
 
 ###########################################
-# 4. Security Scan (gosec)
+# 4. Tests with Race Detection and SKIP detection
 ###########################################
-echo -e "${BLUE}[4/6] Running security scan with gosec...${NC}"
-if command -v gosec &> /dev/null; then
-    if gosec -quiet ./... 2>&1; then
-        echo -e "${GREEN}✓ gosec passed${NC}"
-    else
-        echo -e "${RED}✗ gosec found security issues${NC}"
-        exit 1
-    fi
-else
-    echo -e "${YELLOW}⚠ gosec not installed, skipping security scan${NC}"
-    echo -e "${YELLOW}  Install with: go install github.com/securego/gosec/v2/cmd/gosec@latest${NC}"
-fi
-echo ""
-
-
-###########################################
-# 5. Tests with Race Detection and SKIP detection
-###########################################
-echo -e "${BLUE}[5/6] Running tests with race and skip detection...${NC}"
+echo -e "${BLUE}[4/7] Running tests with race and skip detection...${NC}"
 # Run go test and capture combined stdout+stderr
 output=$(go test -json -v -race \
     -coverprofile=coverage.out \
@@ -125,9 +107,78 @@ echo -e "${GREEN}✓ All tests passed${NC}"
 echo ""
 
 ###########################################
-# 6. Coverage Report (informational only)
+# 5. Security Scans (govulncheck, gosec, trivy)
 ###########################################
-echo -e "${BLUE}[6/6] Reporting test coverage (informational)...${NC}"
+echo -e "${BLUE}[5/7] Running security scans...${NC}"
+
+# govulncheck
+echo -e "${BLUE}  Running govulncheck...${NC}"
+if command -v govulncheck &> /dev/null; then
+    if govulncheck ./... 2>&1; then
+        echo -e "${GREEN}  ✓ govulncheck passed${NC}"
+    else
+        echo -e "${RED}  ✗ govulncheck found vulnerabilities${NC}"
+        exit 1
+    fi
+else
+    echo -e "${YELLOW}  ⚠ govulncheck not installed, skipping${NC}"
+    echo -e "${YELLOW}    Install with: go install golang.org/x/vuln/cmd/govulncheck@latest${NC}"
+fi
+
+# gosec
+echo -e "${BLUE}  Running gosec...${NC}"
+if command -v gosec &> /dev/null; then
+    if gosec -quiet ./... 2>&1; then
+        echo -e "${GREEN}  ✓ gosec passed${NC}"
+    else
+        echo -e "${RED}  ✗ gosec found security issues${NC}"
+        exit 1
+    fi
+else
+    echo -e "${YELLOW}  ⚠ gosec not installed, skipping${NC}"
+    echo -e "${YELLOW}    Install with: go install github.com/securego/gosec/v2/cmd/gosec@latest${NC}"
+fi
+
+# trivy
+echo -e "${BLUE}  Running trivy...${NC}"
+if command -v trivy &> /dev/null; then
+    if trivy fs . --scanners=vuln,misconfig,secret --exit-code 1 2>&1; then
+        echo -e "${GREEN}  ✓ trivy passed${NC}"
+    else
+        echo -e "${RED}  ✗ trivy found issues${NC}"
+        exit 1
+    fi
+else
+    echo -e "${YELLOW}  ⚠ trivy not installed, skipping${NC}"
+    echo -e "${YELLOW}    Install with: brew install trivy (macOS) or see https://trivy.dev${NC}"
+fi
+
+echo ""
+
+###########################################
+# 6. Safety Tests
+###########################################
+echo -e "${BLUE}[6/7] Running safety tests...${NC}"
+safety_output=$(go test -json -v -tags=safety ./test/safety/... 2>&1)
+safety_exit_code=$?
+
+if [ "$safety_exit_code" -ne 0 ]; then
+    echo -e "${RED}✗ Safety tests failed${NC}"
+    exit 1
+fi
+
+if echo "$safety_output" | grep -q '"Action":"skip"'; then
+    echo -e "${RED}✗ Safety tests were SKIPPED${NC}"
+    exit 1
+fi
+
+echo -e "${GREEN}✓ Safety tests passed${NC}"
+echo ""
+
+###########################################
+# 7. Coverage Report (informational only)
+###########################################
+echo -e "${BLUE}[7/7] Reporting test coverage (informational)...${NC}"
 if [ -f coverage.out ]; then
     COVERAGE=$(go tool cover -func=coverage.out | grep total | awk '{print $3}' | sed 's/%//')
     echo -e "Total coverage: ${YELLOW}${COVERAGE}%${NC}"
