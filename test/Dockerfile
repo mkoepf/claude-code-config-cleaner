@@ -1,5 +1,5 @@
 # E2E test environment for cccc
-FROM golang:1.25.6-alpine
+FROM golang:1.26.0-alpine
 
 # Install bash for test scripts
 RUN apk add --no-cache bash
